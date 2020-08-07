@@ -1,0 +1,2 @@
+git@github.com:fhopfensperger/amqp-sb-client.git
+
