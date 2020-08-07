@@ -40,11 +40,15 @@ func GetRemoteBranches(repoUrl string, branchFilter string) (*git.Remote, []stri
 		URLs: []string{repoUrl},
 	})
 
+	log.Info().Msgf("rem %v", rem)
+
 	// We can then use every Remote functions to retrieve wanted information
 	refs, err := rem.List(&git.ListOptions{})
 	if err != nil {
 		log.Err(err)
 	}
+
+	log.Info().Msgf("ref %v", refs)
 
 	// Filters the references list and only branches which apply to the filter
 	var branches []string
@@ -59,18 +63,18 @@ func GetRemoteBranches(repoUrl string, branchFilter string) (*git.Remote, []stri
 
 func FilterBranches(branches []string) []string {
 	var filteredBranches []string
+	// TODO make it configuable
+	regex := `v[0-9].[0-9]`
+	//var minorVersionRegex = regexp.MustCompile(`v[0-9]`)
+	var minorVersionRegex = regexp.MustCompile(regex)
 
-	// Sort branches in ascending order
-	sort.Slice(branches, func(i, j int) bool {
-		return branches[i] < branches[j]
+	// Sort branches by regex in ascending order
+	sort.SliceStable(branches, func(i, j int) bool {
+		return minorVersionRegex.FindString(branches[i]) < minorVersionRegex.FindString(branches[j])
 	})
 
-	var minorVersionRegex = regexp.MustCompile(`v[0-9]`)
-	// TODO make it configuable
-	//var minorVersionRegex = regexp.MustCompile(`v[0-9].[0-9]`)
-
 	minorBranches := make(map[string][]string)
-	var tempBranches []string
+	tempBranches := branches[:0]
 	for _, b := range branches {
 		minorVersion := minorVersionRegex.FindString(b)
 		if len(tempBranches) == 0 {
@@ -88,10 +92,18 @@ func FilterBranches(branches []string) []string {
 		minorBranches[minorVersion] = tempBranches
 	}
 
-	for _, b := range minorBranches {
-		for i, branch := range b {
+	// As iteration over maps doesnt guarantee order, we need to do this workaround
+	// https://blog.golang.org/maps#TOC_7.
+	keys := make([]string, 0)
+	for k, _ := range minorBranches {
+		keys = append(keys, k)
+	}
+	sort.Strings(keys)
+
+	for _, k := range keys {
+		for i, branch := range minorBranches[k] {
 			// Keep last version for minor
-			if i == len(b)-1 {
+			if i == len(minorBranches[k])-1 {
 				continue
 			}
 			filteredBranches = append(filteredBranches, branch)
