@@ -2,7 +2,13 @@ package pkg
 
 import (
 	"fmt"
+	"os"
+	"os/exec"
 	"testing"
+
+	"github.com/go-git/go-git/v5/config"
+
+	"github.com/go-git/go-git/v5"
 
 	"github.com/go-git/go-git/v5/plumbing"
 
@@ -55,7 +61,7 @@ func TestFilterBranches(t *testing.T) {
 		{
 			name: "filter-return-empty",
 			args: args{branches: []string{"head/release/v1.2.8", "head/release/v1.1.9"}},
-			want: []string(nil),
+			want: []string{},
 		},
 		{
 			name: "filter-return-one",
@@ -92,36 +98,65 @@ type remoteBranchMock struct {
 	mock.Mock
 }
 
-func (m *remoteBranchMock) List() bool {
-	fmt.Println("Mocked charge notification function")
-	//fmt.Printf("Value passed in: %s %s\n", s, c)
-	// this records that the method was called and passes in the value
-	// it was called with
-	args := m.Called("nase")
-	// it then returns whatever we tell it to return
-	// in this case true to simulate an SMS Service Notification
-	// sent out
-	//remoteConfig := config.RemoteConfig{
-	//	Name:  "nase",
-	//	URLs:  []string{"nase.com"},
-	//	Fetch: nil,
-	//}
+//func (m *remoteBranchMock) Clone(storer storage.Storer, filesystem billy.Filesystem, options *git.CloneOptions) (*git.Repository, error) {
+//	panic("implement me")
+//}
 
-	return args.Bool(0)
+func (m *remoteBranchMock) Config() *config.RemoteConfig {
+	fmt.Println("Mocked Config function")
+	args := m.Called()
+	return args.Get(0).(*config.RemoteConfig)
+}
+
+func (m *remoteBranchMock) List(l *git.ListOptions) ([]*plumbing.Reference, error) {
+	fmt.Println("Mocked List function")
+	args := m.Called(l)
+	return args.Get(0).([]*plumbing.Reference), nil
 }
 
 func TestGetRemoteBranches(t *testing.T) {
 	remote := new(remoteBranchMock)
-	nase := "nase"
-	ref := plumbing.NewHashReference(plumbing.ReferenceName(nase), plumbing.Hash{})
-	rfs := []*plumbing.Reference{ref}
+	ref := plumbing.NewHashReference("refs/heads/release/v2.2.2", plumbing.Hash{})
+	ref2 := plumbing.NewHashReference(("refs/heads/release/v2.2.0"), plumbing.Hash{})
+	ref3 := plumbing.NewHashReference(("refs/heads/master"), plumbing.Hash{})
+	ref4 := plumbing.NewHashReference(("refs/heads/release/v1.0.0"), plumbing.Hash{})
+	ref5 := plumbing.NewHashReference(("refs/heads/release/v11.0.0"), plumbing.Hash{})
 
-	//rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
-	//	Name: "origin",
-	//	URLs: []string{nase},
-	//})
+	mockRemoteBranch := New(remote)
 
-	remote.On("rem.List").Return(&rfs, nil)
+	remote.On("List", &git.ListOptions{}).Return([]*plumbing.Reference{ref, ref2, ref3, ref4, ref5}, nil)
 
-	GetRemoteBranches(nase, nase)
+	foundBranches := mockRemoteBranch.GetRemoteBranches("git@github.com:fhopfensperger/amqp-sb-client.git", "release")
+	remote.AssertExpectations(t)
+
+	assert.Equal(t, foundBranches[0], "refs/heads/release/v1.0.0")
+	assert.Equal(t, foundBranches[1], "refs/heads/release/v11.0.0")
+	assert.Equal(t, foundBranches[2], "refs/heads/release/v2.2.0")
+	assert.Equal(t, foundBranches[3], "refs/heads/release/v2.2.2")
+
+}
+
+// Test exit status 1 if no branchFilter is defined
+func TestGetRemoteBranchesNoBranchFilter(t *testing.T) {
+	if os.Getenv("FLAG") == "1" {
+		remote := new(remoteBranchMock)
+		mockRemoteBranch := New(remote)
+		mockRemoteBranch.GetRemoteBranches("git@github.com:fhopfensperger/amqp-sb-client.git", "")
+		return
+	}
+	// Run the test in a subprocess
+	cmd := exec.Command(os.Args[0], "-test.run=TestGetRemoteBranchesNoBranchFilter")
+	cmd.Env = append(os.Environ(), "FLAG=1")
+	err := cmd.Run()
+
+	// Cast the error as *exec.ExitError and compare the result
+	e, ok := err.(*exec.ExitError)
+	expectedErrorString := "exit status 1"
+	assert.Equal(t, true, ok)
+	assert.Equal(t, expectedErrorString, e.Error())
+
+}
+
+func TestRemoteBranch_CleanBranches(t *testing.T) {
+
 }

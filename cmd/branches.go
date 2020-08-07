@@ -27,7 +27,8 @@ var branchCmd = &cobra.Command{
 	Long:  `Get remote branches`,
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, r := range repos {
-			pkg.GetRemoteBranches(r, filter)
+			gitService := pkg.RemoteBranch{}
+			gitService.GetRemoteBranches(r, filter)
 		}
 	},
 }

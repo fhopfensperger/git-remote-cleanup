@@ -21,6 +21,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-git/go-git/v5/plumbing"
+
 	"github.com/rs/zerolog/log"
 
 	"github.com/go-git/go-git/v5/config"
@@ -30,25 +32,38 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
-func GetRemoteBranches(repoUrl string, branchFilter string) (*git.Remote, []string) {
+type GitInterface interface {
+	// all of the functions we use from the third party client
+	List(*git.ListOptions) ([]*plumbing.Reference, error)
+	Config() *config.RemoteConfig
+	//Clone(storage.Storer, billy.Filesystem, *git.CloneOptions) (*git.Repository, error)
+}
+
+type RemoteBranch struct {
+	gitClient GitInterface
+}
+
+func New(client GitInterface) RemoteBranch {
+	return RemoteBranch{client}
+}
+
+func (m *RemoteBranch) GetRemoteBranches(repoUrl string, branchFilter string) []string {
 	if branchFilter == "" {
 		log.Warn().Msg("No branchfilter defined")
 		os.Exit(1)
 	}
-	rem := git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
-		Name: "origin",
-		URLs: []string{repoUrl},
-	})
-
-	log.Info().Msgf("rem %v", rem)
+	if m.gitClient == nil {
+		m.gitClient = git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
+			Name: "origin",
+			URLs: []string{repoUrl},
+		})
+	}
 
 	// We can then use every Remote functions to retrieve wanted information
-	refs, err := rem.List(&git.ListOptions{})
+	refs, err := m.gitClient.List(&git.ListOptions{})
 	if err != nil {
 		log.Err(err)
 	}
-
-	log.Info().Msgf("ref %v", refs)
 
 	// Filters the references list and only branches which apply to the filter
 	var branches []string
@@ -57,12 +72,15 @@ func GetRemoteBranches(repoUrl string, branchFilter string) (*git.Remote, []stri
 			branches = append(branches, ref.Name().String())
 		}
 	}
+	sort.SliceStable(branches, func(i, j int) bool {
+		return branches[i] < branches[j]
+	})
 	log.Info().Msgf("Remote branches found: %v for repo %s and filter %s", branches, repoUrl, branchFilter)
-	return rem, branches
+	return branches
 }
 
 func FilterBranches(branches []string) []string {
-	var filteredBranches []string
+	filteredBranches := branches[:0]
 	// TODO make it configuable
 	regex := `v[0-9].[0-9]`
 	//var minorVersionRegex = regexp.MustCompile(`v[0-9]`)
@@ -112,9 +130,9 @@ func FilterBranches(branches []string) []string {
 	return filteredBranches
 }
 
-func CleanBranches(remote *git.Remote, branchesToDelete []string, exclusionList []string, dryRun bool) {
+func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []string, dryRun bool) {
 
-	repoUrl := remote.Config().URLs[0]
+	repoUrl := m.gitClient.Config().URLs[0]
 	if len(branchesToDelete) == 0 {
 		log.Info().Msgf("Nothing to delete for repo %s", repoUrl)
 		return
