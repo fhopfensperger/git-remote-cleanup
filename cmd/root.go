@@ -102,7 +102,7 @@ func initConfig() {
 	fileName = viper.GetString("file")
 
 	if fileName != "" {
-		repos = getReposFromFile()
+		repos = getReposFromFile(fileName)
 	}
 	if len(repos) == 0 && fileName == "" {
 		fmt.Println("Either -f (file) or -r (repos) must be set")
@@ -110,7 +110,7 @@ func initConfig() {
 	}
 }
 
-func getReposFromFile() []string {
+func getReposFromFile(fileName string) []string {
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.Err(err).Msgf("Could not open file %s", fileName)
