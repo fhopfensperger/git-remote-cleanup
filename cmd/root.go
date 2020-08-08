@@ -114,6 +114,7 @@ func getReposFromFile(fileName string) []string {
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.Err(err).Msgf("Could not open file %s", fileName)
+		return nil
 	}
 	defer file.Close()
 

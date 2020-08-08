@@ -37,3 +37,12 @@ func Test_getReposFromFile_ignore_empty_and_hashtag_lines(t *testing.T) {
 
 	os.Remove(fileName)
 }
+
+func Test_getReposFromFile_file_not_found(t *testing.T) {
+	fileName := "test.txt"
+	os.Create(fileName)
+	repos := getReposFromFile(fileName + "unknown")
+	assert.Equal(t, []string(nil), repos)
+
+	os.Remove(fileName)
+}
