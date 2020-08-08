@@ -36,8 +36,8 @@ var fileName string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "git-remote-cleanup",
-	Short: "Simple command line utility to get and delete branches from a git hub repo",
-	Long:  `Simple command line utility to get and delete branches from a git hub repo`,
+	Short: "Simple command line utility to get and delete branches from a remote git repo",
+	Long:  `Simple command line utility to get and delete branches from a remote git repo`,
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
