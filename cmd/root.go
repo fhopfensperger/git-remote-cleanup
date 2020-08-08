@@ -123,7 +123,7 @@ func getReposFromFile() []string {
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if len(line) != 0 {
+		if len(line) != 0 && string(line[0]) != "#" {
 			lines = append(lines, line)
 		}
 	}

@@ -98,9 +98,10 @@ type remoteBranchMock struct {
 	mock.Mock
 }
 
-//func (m *remoteBranchMock) Clone(storer storage.Storer, filesystem billy.Filesystem, options *git.CloneOptions) (*git.Repository, error) {
-//	panic("implement me")
-//}
+func (m *remoteBranchMock) Push(options *git.PushOptions) error {
+	fmt.Println("Mocked Push function")
+	return nil
+}
 
 func (m *remoteBranchMock) Config() *config.RemoteConfig {
 	fmt.Println("Mocked Config function")
@@ -158,5 +159,112 @@ func TestGetRemoteBranchesNoBranchFilter(t *testing.T) {
 }
 
 func TestRemoteBranch_CleanBranches(t *testing.T) {
+	remote := new(remoteBranchMock)
+	// Actually we need to use a real Repo, because inside CleanBranches we need a real repo
+	// however, the deletion of branches is mocked.
+	remoteConfing := config.RemoteConfig{
+		Name:  "amqp-sb-client.git",
+		URLs:  []string{"git@github.com:fhopfensperger/amqp-sb-client.git"},
+		Fetch: nil,
+	}
+	repo := git.Repository{}
 
+	mockRemoteBranch := New(remote)
+	mockRemoteBranch.AddRepo(&repo)
+
+	var refspecs []config.RefSpec
+	refspecs = append(refspecs, "refs/heads/release/v2.2.2:refs/heads/release/v2.2.2")
+	pushOptions := &git.PushOptions{
+		Prune:    true,
+		RefSpecs: refspecs,
+	}
+
+	remote.On("Config").Return(&remoteConfing)
+	remote.On("Push", &pushOptions).Return(nil)
+	deletedBranches := mockRemoteBranch.CleanBranches([]string{"refs/heads/release/v2.2.2"}, []string{"v2.2.1"}, false)
+	assert.Equal(t, []string{"refs/heads/release/v2.2.2"}, deletedBranches)
+}
+
+func TestRemoteBranch_CleanBranches_All_Excluded(t *testing.T) {
+	remote := new(remoteBranchMock)
+	// Actually we need to use a real Repo, because inside CleanBranches we need a real repo
+	// however, the deletion of branches is mocked.
+	remoteConfing := config.RemoteConfig{
+		Name:  "amqp-sb-client.git",
+		URLs:  []string{"git@github.com:fhopfensperger/amqp-sb-client.git"},
+		Fetch: nil,
+	}
+	repo := git.Repository{}
+
+	mockRemoteBranch := New(remote)
+	mockRemoteBranch.AddRepo(&repo)
+
+	var refspecs []config.RefSpec
+	refspecs = append(refspecs, "refs/heads/release/v2.2.2:refs/heads/release/v2.2.2")
+	refspecs = append(refspecs, "refs/heads/release/v2.2.1:refs/heads/release/v2.2.1")
+	pushOptions := &git.PushOptions{
+		Prune:    true,
+		RefSpecs: refspecs,
+	}
+
+	remote.On("Config").Return(&remoteConfing)
+	remote.On("Push", &pushOptions).Return(nil)
+	deletedBranches := mockRemoteBranch.CleanBranches([]string{"refs/heads/release/v2.2.2", "refs/heads/release/v2.2.1"}, []string{"v2.2.1", "v2.2.2"}, false)
+	assert.Empty(t, deletedBranches)
+}
+
+func TestRemoteBranch_CleanBranches_Some_Excluded(t *testing.T) {
+	remote := new(remoteBranchMock)
+	// Actually we need to use a real Repo, because inside CleanBranches we need a real repo
+	// however, the deletion of branches is mocked.
+	remoteConfing := config.RemoteConfig{
+		Name:  "amqp-sb-client.git",
+		URLs:  []string{"git@github.com:fhopfensperger/amqp-sb-client.git"},
+		Fetch: nil,
+	}
+	repo := git.Repository{}
+
+	mockRemoteBranch := New(remote)
+	mockRemoteBranch.AddRepo(&repo)
+
+	var refspecs []config.RefSpec
+	refspecs = append(refspecs, "refs/heads/release/v2.2.2:refs/heads/release/v2.2.2")
+	refspecs = append(refspecs, "refs/heads/release/v2.2.1:refs/heads/release/v2.2.1")
+	pushOptions := &git.PushOptions{
+		Prune:    true,
+		RefSpecs: refspecs,
+	}
+
+	remote.On("Config").Return(&remoteConfing)
+	remote.On("Push", &pushOptions).Return(nil)
+	deletedBranches := mockRemoteBranch.CleanBranches([]string{"refs/heads/release/v2.2.3", "refs/heads/release/v2.2.2", "refs/heads/release/v2.2.1"}, []string{"v2.2.2"}, false)
+	assert.Equal(t, []string{"refs/heads/release/v2.2.3", "refs/heads/release/v2.2.1"}, deletedBranches)
+}
+
+func TestRemoteBranch_CleanBranches_branches_to_delete_empty(t *testing.T) {
+	remote := new(remoteBranchMock)
+	// Actually we need to use a real Repo, because inside CleanBranches we need a real repo
+	// however, the deletion of branches is mocked.
+	remoteConfing := config.RemoteConfig{
+		Name:  "amqp-sb-client.git",
+		URLs:  []string{"git@github.com:fhopfensperger/amqp-sb-client.git"},
+		Fetch: nil,
+	}
+	repo := git.Repository{}
+
+	mockRemoteBranch := New(remote)
+	mockRemoteBranch.AddRepo(&repo)
+
+	var refspecs []config.RefSpec
+	refspecs = append(refspecs, "refs/heads/release/v2.2.2:refs/heads/release/v2.2.2")
+	refspecs = append(refspecs, "refs/heads/release/v2.2.1:refs/heads/release/v2.2.1")
+	pushOptions := &git.PushOptions{
+		Prune:    true,
+		RefSpecs: refspecs,
+	}
+
+	remote.On("Config").Return(&remoteConfing)
+	remote.On("Push", &pushOptions).Return(nil)
+	deletedBranches := mockRemoteBranch.CleanBranches([]string{}, []string{"v2.2.2"}, false)
+	assert.Empty(t, deletedBranches)
 }

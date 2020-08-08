@@ -36,15 +36,20 @@ type GitInterface interface {
 	// all of the functions we use from the third party client
 	List(*git.ListOptions) ([]*plumbing.Reference, error)
 	Config() *config.RemoteConfig
-	//Clone(storage.Storer, billy.Filesystem, *git.CloneOptions) (*git.Repository, error)
+	Push(*git.PushOptions) error
 }
 
 type RemoteBranch struct {
 	gitClient GitInterface
+	repo      *git.Repository
 }
 
 func New(client GitInterface) RemoteBranch {
-	return RemoteBranch{client}
+	return RemoteBranch{client, nil}
+}
+
+func (m *RemoteBranch) AddRepo(repo *git.Repository) {
+	m.repo = repo
 }
 
 func (m *RemoteBranch) GetRemoteBranches(repoUrl string, branchFilter string) []string {
@@ -62,7 +67,7 @@ func (m *RemoteBranch) GetRemoteBranches(repoUrl string, branchFilter string) []
 	// We can then use every Remote functions to retrieve wanted information
 	refs, err := m.gitClient.List(&git.ListOptions{})
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("")
 	}
 
 	// Filters the references list and only branches which apply to the filter
@@ -130,12 +135,12 @@ func FilterBranches(branches []string) []string {
 	return filteredBranches
 }
 
-func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []string, dryRun bool) {
+func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []string, dryRun bool) (deletedBranches []string) {
 
 	repoUrl := m.gitClient.Config().URLs[0]
 	if len(branchesToDelete) == 0 {
 		log.Info().Msgf("Nothing to delete for repo %s", repoUrl)
-		return
+		return nil
 	}
 
 	// Exclude branches from deletion
@@ -151,15 +156,23 @@ func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []
 		branchesToDelete = tmp
 	}
 
-	log.Info().Msgf("Going to delete branches: %v from repo %s ", branchesToDelete, repoUrl)
+	if len(branchesToDelete) == 0 {
+		log.Info().Msgf("Nothing to delete, all branches are excluded")
+		return nil
+	}
+
+	log.Info().Msgf("Going to delete branches: %v from repo %s", branchesToDelete, repoUrl)
 
 	// Clone repo temp
 	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
 		URL: repoUrl,
 	})
 	if err != nil {
-		log.Err(err)
+		log.Err(err).Msg("")
 		os.Exit(1)
+	}
+	if m.repo == nil {
+		m.AddRepo(r)
 	}
 
 	var refspecs []config.RefSpec
@@ -171,18 +184,19 @@ func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []
 	log.Info().Msg("Deleting...")
 	// push to delete branches which are matches the refspecs
 	if !dryRun {
-		err = r.Push(&git.PushOptions{
+		err = m.gitClient.Push(&git.PushOptions{
 			Prune:    true,
 			RefSpecs: refspecs,
 		})
 		if err != nil {
-			log.Err(err)
+			log.Err(err).Msg("")
 		}
+		return branchesToDelete
 		log.Info().Msg("Branches deleted")
 	} else {
 		log.Info().Msg("Dry run! Nothing deleted")
 	}
-
+	return nil
 }
 
 func contains(s []string, e string) (string, bool) {
