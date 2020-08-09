@@ -12,7 +12,7 @@ import (
 )
 
 func Test_getReposFromFile(t *testing.T) {
-	repo1 := "git@github.com:fhopfensperger/amqp-sb-client.git"
+	repo1 := "https://github.com/fhopfensperger/amqp-sb-client.git"
 	repo2 := "git@github.com:fhopfensperger/json-log-to-human-readable.git"
 	fileName := "test.txt"
 	f, _ := os.Create(fileName)
@@ -25,9 +25,9 @@ func Test_getReposFromFile(t *testing.T) {
 }
 
 func Test_getReposFromFile_ignore_empty_and_hashtag_lines(t *testing.T) {
-	repo1 := "git@github.com:fhopfensperger/amqp-sb-client.git"
+	repo1 := "https://github.com/fhopfensperger/amqp-sb-client.git"
 	repo2 := ""
-	repo3 := "git@github.com:fhopfensperger/json-log-to-human-readable.git"
+	repo3 := "https://github.com/fhopfensperger/json-log-to-human-readable.git"
 	repo4 := "#git@github.com:fhopfensperger/json-log-to-human-readable.git"
 	fileName := "test.txt"
 	f, _ := os.Create(fileName)

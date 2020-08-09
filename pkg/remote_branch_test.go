@@ -127,7 +127,7 @@ func TestGetRemoteBranches(t *testing.T) {
 
 	remote.On("List", &git.ListOptions{}).Return([]*plumbing.Reference{ref, ref2, ref3, ref4, ref5}, nil)
 
-	foundBranches := mockRemoteBranch.GetRemoteBranches("git@github.com:fhopfensperger/amqp-sb-client.git", "release")
+	foundBranches := mockRemoteBranch.GetRemoteBranches("https://github.com/fhopfensperger/amqp-sb-client.git", "release")
 	remote.AssertExpectations(t)
 
 	assert.Equal(t, foundBranches[0], "refs/heads/release/v1.0.0")
@@ -142,7 +142,7 @@ func TestGetRemoteBranchesNoBranchFilter(t *testing.T) {
 	if os.Getenv("FLAG") == "1" {
 		remote := new(remoteBranchMock)
 		mockRemoteBranch := New(remote)
-		mockRemoteBranch.GetRemoteBranches("git@github.com:fhopfensperger/amqp-sb-client.git", "")
+		mockRemoteBranch.GetRemoteBranches("https://github.com/fhopfensperger/amqp-sb-client.git", "")
 		return
 	}
 	// Run the test in a subprocess
@@ -191,7 +191,7 @@ func TestRemoteBranch_CleanBranches_All_Excluded(t *testing.T) {
 	// however, the deletion of branches is mocked.
 	remoteConfing := config.RemoteConfig{
 		Name:  "amqp-sb-client.git",
-		URLs:  []string{"git@github.com:fhopfensperger/amqp-sb-client.git"},
+		URLs:  []string{"https://github.com/fhopfensperger/amqp-sb-client.git"},
 		Fetch: nil,
 	}
 	repo := git.Repository{}
@@ -219,7 +219,7 @@ func TestRemoteBranch_CleanBranches_Some_Excluded(t *testing.T) {
 	// however, the deletion of branches is mocked.
 	remoteConfing := config.RemoteConfig{
 		Name:  "amqp-sb-client.git",
-		URLs:  []string{"git@github.com:fhopfensperger/amqp-sb-client.git"},
+		URLs:  []string{"https://github.com/fhopfensperger/amqp-sb-client.git"},
 		Fetch: nil,
 	}
 	repo := git.Repository{}
@@ -247,7 +247,7 @@ func TestRemoteBranch_CleanBranches_branches_to_delete_empty(t *testing.T) {
 	// however, the deletion of branches is mocked.
 	remoteConfing := config.RemoteConfig{
 		Name:  "amqp-sb-client.git",
-		URLs:  []string{"git@github.com:fhopfensperger/amqp-sb-client.git"},
+		URLs:  []string{"https://github.com/fhopfensperger/amqp-sb-client.git"},
 		Fetch: nil,
 	}
 	repo := git.Repository{}
