@@ -22,6 +22,7 @@ import (
 )
 
 var excludes []string
+var dryRun bool
 
 // deleteCmd represents the delete command
 var deleteCmd = &cobra.Command{
@@ -30,7 +31,7 @@ var deleteCmd = &cobra.Command{
 	Long:  `Delete old branches, keeps every latest hotfix version`,
 	Run: func(cmd *cobra.Command, args []string) {
 		excludes = viper.GetStringSlice("exclude")
-		dryRun := viper.GetBool("dry-run")
+		dryRun = viper.GetBool("dry-run")
 		for _, r := range repos {
 			gitService := pkg.RemoteBranch{}
 			branches := gitService.GetRemoteBranches(r, filter)
