@@ -60,15 +60,15 @@ func init() {
 	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.git-remote-cleanup.yaml)")
 	pf := rootCmd.PersistentFlags()
 	pf.StringSliceP("repos", "r", []string{}, "Git Repo urls e.g. git@github.com:fhopfensperger/my-repo.git")
-	viper.BindPFlag("repos", pf.Lookup("repos"))
+	_ = viper.BindPFlag("repos", pf.Lookup("repos"))
 	//cobra.MarkFlagRequired(pf, "repos")
 	pf.StringP("branch-filter", "b", "", "Which branches should be filtered e.g. release")
-	viper.BindPFlag("branch-filter", pf.Lookup("branch-filter"))
-	cobra.MarkFlagRequired(pf, "branch-filter")
+	_ = viper.BindPFlag("branch-filter", pf.Lookup("branch-filter"))
+	_ = cobra.MarkFlagRequired(pf, "branch-filter")
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	pf.StringP("file", "f", "", "Uses repos from file (one repo per line)")
-	viper.BindPFlag("file", pf.Lookup("file"))
+	_ = viper.BindPFlag("file", pf.Lookup("file"))
 	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.SetVersionTemplate(`{{printf "v%s\n" .Version}}`)
 }

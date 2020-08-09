@@ -46,9 +46,9 @@ func init() {
 
 	flags := deleteCmd.Flags()
 	flags.StringSliceP("exclude", "e", []string{}, "Exclude branches, e.g. v1.0.1")
-	viper.BindPFlag("exclude", flags.Lookup("exclude"))
+	_ = viper.BindPFlag("exclude", flags.Lookup("exclude"))
 
 	flags.Bool("dry-run", false, "Perform dry run, do not delete anything")
-	viper.BindPFlag("dry-run", flags.Lookup("dry-run"))
+	_ = viper.BindPFlag("dry-run", flags.Lookup("dry-run"))
 
 }

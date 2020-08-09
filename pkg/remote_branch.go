@@ -52,7 +52,7 @@ func (m *RemoteBranch) AddRepo(repo *git.Repository) {
 	m.repo = repo
 }
 
-func (m *RemoteBranch) GetRemoteBranches(repoUrl string, branchFilter string) []string {
+func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string) []string {
 	if branchFilter == "" {
 		log.Warn().Msg("No branchfilter defined")
 		os.Exit(1)
@@ -60,7 +60,7 @@ func (m *RemoteBranch) GetRemoteBranches(repoUrl string, branchFilter string) []
 	if m.gitClient == nil {
 		m.gitClient = git.NewRemote(memory.NewStorage(), &config.RemoteConfig{
 			Name: "origin",
-			URLs: []string{repoUrl},
+			URLs: []string{repoURL},
 		})
 	}
 
@@ -80,7 +80,7 @@ func (m *RemoteBranch) GetRemoteBranches(repoUrl string, branchFilter string) []
 	sort.SliceStable(branches, func(i, j int) bool {
 		return branches[i] < branches[j]
 	})
-	log.Info().Msgf("Remote branches found: %v for repo %s and filter %s", branches, repoUrl, branchFilter)
+	log.Info().Msgf("Remote branches found: %v for repo %s and filter %s", branches, repoURL, branchFilter)
 	return branches
 }
 
@@ -137,9 +137,9 @@ func FilterBranches(branches []string) []string {
 
 func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []string, dryRun bool) (deletedBranches []string) {
 
-	repoUrl := m.gitClient.Config().URLs[0]
+	repoURL := m.gitClient.Config().URLs[0]
 	if len(branchesToDelete) == 0 {
-		log.Info().Msgf("Nothing to delete for repo %s", repoUrl)
+		log.Info().Msgf("Nothing to delete for repo %s", repoURL)
 		return nil
 	}
 
@@ -161,11 +161,11 @@ func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []
 		return nil
 	}
 
-	log.Info().Msgf("Going to delete branches: %v from repo %s", branchesToDelete, repoUrl)
+	log.Info().Msgf("Going to delete branches: %v from repo %s", branchesToDelete, repoURL)
 
 	// Clone repo temp
 	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-		URL: repoUrl,
+		URL: repoURL,
 	})
 	if err != nil {
 		log.Err(err).Msg("")
@@ -191,11 +191,10 @@ func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []
 		if err != nil {
 			log.Err(err).Msg("")
 		}
-		return branchesToDelete
 		log.Info().Msg("Branches deleted")
-	} else {
-		log.Info().Msg("Dry run! Nothing deleted")
+		return branchesToDelete
 	}
+	log.Info().Msg("Dry run! Nothing deleted")
 	return nil
 }
 
