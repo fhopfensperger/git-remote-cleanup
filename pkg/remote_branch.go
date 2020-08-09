@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package pkg
 
 import (
@@ -32,26 +33,31 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
+//GitInterface all of the functions we use from the third party client
+// to be able to mock them in the tests.
 type GitInterface interface {
-	// all of the functions we use from the third party client
 	List(*git.ListOptions) ([]*plumbing.Reference, error)
 	Config() *config.RemoteConfig
 	Push(*git.PushOptions) error
 }
 
+//RemoteBranch to implement the interface
 type RemoteBranch struct {
 	gitClient GitInterface
 	repo      *git.Repository
 }
 
+//New constructor
 func New(client GitInterface) RemoteBranch {
 	return RemoteBranch{client, nil}
 }
 
+//AddRepo to add a remote repo to RemoteBranch struct
 func (m *RemoteBranch) AddRepo(repo *git.Repository) {
 	m.repo = repo
 }
 
+//GetRemoteBranches get remote branches from GitHub using the repoURL and the branchFilter
 func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string) []string {
 	if branchFilter == "" {
 		log.Warn().Msg("No branchfilter defined")
@@ -84,6 +90,9 @@ func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string) []
 	return branches
 }
 
+//FilterBranches which should be deleted, for the the moment there is a hard coded regex for the minor version
+//e.g. we have the following branches /release/v1.0.0 /release/v1.1.0 /release/v1.1.1 the function would
+//filter out /release/v1.1.0, as /release/v1.1.1 is newer than v1.1.0.
 func FilterBranches(branches []string) []string {
 	filteredBranches := branches[:0]
 	// TODO make it configuable
@@ -118,7 +127,7 @@ func FilterBranches(branches []string) []string {
 	// As iteration over maps doesnt guarantee order, we need to do this workaround
 	// https://blog.golang.org/maps#TOC_7.
 	keys := make([]string, 0)
-	for k, _ := range minorBranches {
+	for k := range minorBranches {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
@@ -135,6 +144,8 @@ func FilterBranches(branches []string) []string {
 	return filteredBranches
 }
 
+//CleanBranches deletes branches from the remote repo which are included in the branchesToDelete slice, it excludes
+//branches from the exclusionList. You can simulate the deletion, with dryRun
 func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []string, dryRun bool) (deletedBranches []string) {
 
 	repoURL := m.gitClient.Config().URLs[0]
