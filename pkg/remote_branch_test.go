@@ -164,7 +164,7 @@ func TestRemoteBranch_CleanBranches(t *testing.T) {
 	// however, the deletion of branches is mocked.
 	remoteConfing := config.RemoteConfig{
 		Name:  "amqp-sb-client.git",
-		URLs:  []string{"git@github.com:fhopfensperger/amqp-sb-client.git"},
+		URLs:  []string{"https://github.com/fhopfensperger/amqp-sb-client.git"},
 		Fetch: nil,
 	}
 	repo := git.Repository{}
