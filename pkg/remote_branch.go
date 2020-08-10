@@ -20,6 +20,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 
 	"github.com/go-git/go-git/v5/plumbing"
@@ -58,7 +59,7 @@ func (m *RemoteBranch) AddRepo(repo *git.Repository) {
 }
 
 //GetRemoteBranches get remote branches from GitHub using the repoURL and the branchFilter
-func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string) []string {
+func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string, latest bool) []string {
 	if branchFilter == "" {
 		log.Warn().Msg("No branchfilter defined")
 		os.Exit(1)
@@ -83,9 +84,27 @@ func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string) []
 			branches = append(branches, ref.Name().String())
 		}
 	}
+	numberRegex := regexp.MustCompile(`[0-9]+`)
 	sort.SliceStable(branches, func(i, j int) bool {
-		return branches[i] < branches[j]
+		// Major version: Sort slice by number, converts v0.1.2 into 0
+		branchA, _ := strconv.Atoi(numberRegex.FindString(branches[i]))
+		branchB, _ := strconv.Atoi(numberRegex.FindString(branches[j]))
+		if branchA == branchB {
+			// Minor version: Sort slice by number, converts v0.1.2 into 01
+			branchA, _ = strconv.Atoi(numberRegex.FindString(strings.Replace(branches[i], ".", "", 1)))
+			branchB, _ = strconv.Atoi(numberRegex.FindString(strings.Replace(branches[j], ".", "", 1)))
+			if branchA == branchB {
+				// If minor version are the same also consider hotfix version; See TestGetRemoteBranches_latest in remote_branch_test.go
+				branchA, _ = strconv.Atoi(numberRegex.FindString(strings.ReplaceAll(branches[i], ".", "")))
+				branchB, _ = strconv.Atoi(numberRegex.FindString(strings.ReplaceAll(branches[j], ".", "")))
+			}
+		}
+		return branchA < branchB
 	})
+	if latest {
+		log.Info().Msgf("Latest branch: %v for repo %s and filter %s", branches[len(branches)-1], repoURL, branchFilter)
+		return []string{branches[len(branches)-1]}
+	}
 	log.Info().Msgf("Remote branches found: %v for repo %s and filter %s", branches, repoURL, branchFilter)
 	return branches
 }

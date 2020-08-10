@@ -19,7 +19,10 @@ package cmd
 import (
 	"github.com/fhopfensperger/git-remote-cleanup/pkg"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
+
+var latest bool
 
 // branchCmd represents the branch command
 var branchCmd = &cobra.Command{
@@ -28,12 +31,17 @@ var branchCmd = &cobra.Command{
 	Long:  `Get remote branches`,
 	Run: func(cmd *cobra.Command, args []string) {
 		for _, r := range repos {
+			latest = viper.GetBool("latest")
 			gitService := pkg.RemoteBranch{}
-			gitService.GetRemoteBranches(r, filter)
+			gitService.GetRemoteBranches(r, filter, latest)
 		}
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(branchCmd)
+
+	flags := branchCmd.Flags()
+	flags.BoolP("latest", "l", false, "Print latest remote branch for filter")
+	_ = viper.BindPFlag("latest", flags.Lookup("latest"))
 }

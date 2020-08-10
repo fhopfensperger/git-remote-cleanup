@@ -35,7 +35,7 @@ var deleteCmd = &cobra.Command{
 		dryRun = viper.GetBool("dry-run")
 		for _, r := range repos {
 			gitService := pkg.RemoteBranch{}
-			branches := gitService.GetRemoteBranches(r, filter)
+			branches := gitService.GetRemoteBranches(r, filter, false)
 			branches = pkg.FilterBranches(branches)
 			gitService.CleanBranches(branches, excludes, dryRun)
 		}

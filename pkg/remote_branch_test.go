@@ -127,14 +127,32 @@ func TestGetRemoteBranches(t *testing.T) {
 
 	remote.On("List", &git.ListOptions{}).Return([]*plumbing.Reference{ref, ref2, ref3, ref4, ref5}, nil)
 
-	foundBranches := mockRemoteBranch.GetRemoteBranches("https://github.com/fhopfensperger/amqp-sb-client.git", "release")
+	foundBranches := mockRemoteBranch.GetRemoteBranches("https://github.com/fhopfensperger/amqp-sb-client.git", "release", false)
 	remote.AssertExpectations(t)
 
-	assert.Equal(t, foundBranches[0], "refs/heads/release/v1.0.0")
-	assert.Equal(t, foundBranches[1], "refs/heads/release/v11.0.0")
-	assert.Equal(t, foundBranches[2], "refs/heads/release/v2.2.0")
-	assert.Equal(t, foundBranches[3], "refs/heads/release/v2.2.2")
+	assert.Equal(t, "refs/heads/release/v1.0.0", foundBranches[0])
+	assert.Equal(t, "refs/heads/release/v2.2.0", foundBranches[1])
+	assert.Equal(t, "refs/heads/release/v2.2.2", foundBranches[2])
+	assert.Equal(t, "refs/heads/release/v11.0.0", foundBranches[3])
 
+}
+
+func TestGetRemoteBranches_latest(t *testing.T) {
+	remote := new(remoteBranchMock)
+	ref1 := plumbing.NewHashReference(("refs/heads/master"), plumbing.Hash{})
+	ref2 := plumbing.NewHashReference(("refs/heads/release/v1.0.0"), plumbing.Hash{})
+	ref3 := plumbing.NewHashReference(("refs/heads/release/v1.1.99"), plumbing.Hash{})
+	ref4 := plumbing.NewHashReference(("refs/heads/release/v11.0.1"), plumbing.Hash{})
+	ref5 := plumbing.NewHashReference(("refs/heads/release/v11.0.0"), plumbing.Hash{})
+
+	mockRemoteBranch := New(remote)
+
+	remote.On("List", &git.ListOptions{}).Return([]*plumbing.Reference{ref1, ref2, ref3, ref4, ref5}, nil)
+
+	foundBranches := mockRemoteBranch.GetRemoteBranches("https://github.com/fhopfensperger/amqp-sb-client.git", "release", true)
+	remote.AssertExpectations(t)
+
+	assert.Equal(t, "refs/heads/release/v11.0.1", foundBranches[0])
 }
 
 // Test exit status 1 if no branchFilter is defined
@@ -142,7 +160,7 @@ func TestGetRemoteBranchesNoBranchFilter(t *testing.T) {
 	if os.Getenv("FLAG") == "1" {
 		remote := new(remoteBranchMock)
 		mockRemoteBranch := New(remote)
-		mockRemoteBranch.GetRemoteBranches("https://github.com/fhopfensperger/amqp-sb-client.git", "")
+		mockRemoteBranch.GetRemoteBranches("https://github.com/fhopfensperger/amqp-sb-client.git", "", false)
 		return
 	}
 	// Run the test in a subprocess
@@ -155,7 +173,6 @@ func TestGetRemoteBranchesNoBranchFilter(t *testing.T) {
 	expectedErrorString := "exit status 1"
 	assert.Equal(t, true, ok)
 	assert.Equal(t, expectedErrorString, e.Error())
-
 }
 
 func TestRemoteBranch_CleanBranches(t *testing.T) {
