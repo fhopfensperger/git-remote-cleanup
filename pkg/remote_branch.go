@@ -20,8 +20,9 @@ import (
 	"os"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
+
+	"golang.org/x/mod/semver"
 
 	"github.com/go-git/go-git/v5/plumbing"
 
@@ -58,6 +59,8 @@ func (m *RemoteBranch) AddRepo(repo *git.Repository) {
 	m.repo = repo
 }
 
+var versionRegex = regexp.MustCompile(`v\d+(\.\d+)+`)
+
 //GetRemoteBranches get remote branches from GitHub using the repoURL and the branchFilter
 func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string, latest bool) []string {
 	if branchFilter == "" {
@@ -84,23 +87,7 @@ func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string, la
 			branches = append(branches, ref.Name().String())
 		}
 	}
-	numberRegex := regexp.MustCompile(`[0-9]+`)
-	sort.SliceStable(branches, func(i, j int) bool {
-		// Major version: Sort slice by number, converts v0.1.2 into 0
-		branchA, _ := strconv.Atoi(numberRegex.FindString(branches[i]))
-		branchB, _ := strconv.Atoi(numberRegex.FindString(branches[j]))
-		if branchA == branchB {
-			// Minor version: Sort slice by number, converts v0.1.2 into 01
-			branchA, _ = strconv.Atoi(numberRegex.FindString(strings.Replace(branches[i], ".", "", 1)))
-			branchB, _ = strconv.Atoi(numberRegex.FindString(strings.Replace(branches[j], ".", "", 1)))
-			if branchA == branchB {
-				// If minor version are the same also consider hotfix version; See TestGetRemoteBranches_latest in remote_branch_test.go
-				branchA, _ = strconv.Atoi(numberRegex.FindString(strings.ReplaceAll(branches[i], ".", "")))
-				branchB, _ = strconv.Atoi(numberRegex.FindString(strings.ReplaceAll(branches[j], ".", "")))
-			}
-		}
-		return branchA < branchB
-	})
+	sortBySemVer(branches)
 	if latest {
 		log.Info().Msgf("Latest branch: %v for repo %s and filter %s", branches[len(branches)-1], repoURL, branchFilter)
 		return []string{branches[len(branches)-1]}
@@ -109,55 +96,17 @@ func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string, la
 	return branches
 }
 
-//FilterBranches which should be deleted, for the the moment there is a hard coded regex for the minor version
+//FilterBranches which should be deleted, for the the moment there is semver.MajorMinor used
 //e.g. we have the following branches /release/v1.0.0 /release/v1.1.0 /release/v1.1.1 the function would
 //filter out /release/v1.1.0, as /release/v1.1.1 is newer than v1.1.0.
 func FilterBranches(branches []string) []string {
+	sortBySemVer(branches)
 	filteredBranches := branches[:0]
+
 	// TODO make it configuable
-	regex := `v[0-9].[0-9]`
-	//var minorVersionRegex = regexp.MustCompile(`v[0-9]`)
-	var minorVersionRegex = regexp.MustCompile(regex)
-
-	// Sort branches by regex in ascending order
-	sort.SliceStable(branches, func(i, j int) bool {
-		return minorVersionRegex.FindString(branches[i]) < minorVersionRegex.FindString(branches[j])
-	})
-
-	minorBranches := make(map[string][]string)
-	tempBranches := branches[:0]
-	for _, b := range branches {
-		minorVersion := minorVersionRegex.FindString(b)
-		if len(tempBranches) == 0 {
-			// temp branch is empty
-			tempBranches = append(tempBranches, b)
-		} else if minorVersionRegex.FindString(tempBranches[0]) == minorVersion {
-			// branch has the same major version
-			tempBranches = append(tempBranches, b)
-
-		} else {
-			// branch has other minor version
-			tempBranches = nil
-			tempBranches = append(tempBranches, b)
-		}
-		minorBranches[minorVersion] = tempBranches
-	}
-
-	// As iteration over maps doesnt guarantee order, we need to do this workaround
-	// https://blog.golang.org/maps#TOC_7.
-	keys := make([]string, 0)
-	for k := range minorBranches {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-
-	for _, k := range keys {
-		for i, branch := range minorBranches[k] {
-			// Keep last version for minor
-			if i == len(minorBranches[k])-1 {
-				continue
-			}
-			filteredBranches = append(filteredBranches, branch)
+	for i, b := range branches {
+		if i > 0 && semver.MajorMinor(versionRegex.FindString(b)) == semver.MajorMinor(versionRegex.FindString(branches[i-1])) {
+			filteredBranches = append(filteredBranches, branches[i-1])
 		}
 	}
 	return filteredBranches
@@ -235,4 +184,20 @@ func contains(s []string, e string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func sortBySemVer(s []string) {
+	sort.SliceStable(s, func(i, j int) bool {
+		branchA := semver.Canonical(versionRegex.FindString(s[i]))
+		branchB := semver.Canonical(versionRegex.FindString(s[j]))
+
+		switch semver.Compare(branchA, branchB) {
+		case -1:
+			return true
+		case 0:
+			return false
+		default:
+			return false
+		}
+	})
 }
