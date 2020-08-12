@@ -94,7 +94,7 @@ checkDesiredVersion() {
 # if it needs to be changed.
 checkInstalledVersion() {
   if [[ -f "$INSTALL_DIR/$BINARY_NAME" ]]; then
-    local version=$("$INSTALL_DIR/$BINARY_NAME" version)
+    local version=$("$INSTALL_DIR/$BINARY_NAME" --version)
     if [[ "$version" == "$TAG" ]]; then
       echo "${BINARY_NAME} ${version} is already ${DESIRED_VERSION:-latest}"
       return 0
