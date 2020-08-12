@@ -78,7 +78,7 @@ func TestFilterBranches(t *testing.T) {
 			name: "filter-return-multiple",
 			args: args{branches: []string{"head/release/v10.1.0", "head/release/v10.1.8", "head/release/v1.1.9", "head/release/v1.1.10", "head/release/v1.1.11",
 				"head/release/v1.2.0", "head/release/v1.2.1"}},
-			want: []string{"head/release/v10.1.0", "head/release/v1.1.9", "head/release/v1.1.10", "head/release/v1.2.0"},
+			want: []string{"head/release/v1.1.9", "head/release/v1.1.10", "head/release/v1.2.0", "head/release/v10.1.0"},
 		},
 		{
 			name: "filter-return-multiple-major-versions",
@@ -144,10 +144,12 @@ func TestGetRemoteBranches_latest(t *testing.T) {
 	ref3 := plumbing.NewHashReference(("refs/heads/release/v1.1.99"), plumbing.Hash{})
 	ref4 := plumbing.NewHashReference(("refs/heads/release/v11.0.1"), plumbing.Hash{})
 	ref5 := plumbing.NewHashReference(("refs/heads/release/v11.0.0"), plumbing.Hash{})
+	// Dummy it would never happen in a real repository
+	ref6 := plumbing.NewHashReference(("refs/heads/release/v11.0.0"), plumbing.Hash{})
 
 	mockRemoteBranch := New(remote)
 
-	remote.On("List", &git.ListOptions{}).Return([]*plumbing.Reference{ref1, ref2, ref3, ref4, ref5}, nil)
+	remote.On("List", &git.ListOptions{}).Return([]*plumbing.Reference{ref1, ref2, ref3, ref4, ref5, ref6}, nil)
 
 	foundBranches := mockRemoteBranch.GetRemoteBranches("https://github.com/fhopfensperger/amqp-sb-client.git", "release", true)
 	remote.AssertExpectations(t)
