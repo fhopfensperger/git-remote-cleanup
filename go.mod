@@ -9,5 +9,5 @@ require (
 	github.com/spf13/viper v1.7.1
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.6.1
-	golang.org/x/mod v0.1.0
+	golang.org/x/mod v0.3.0
 )
