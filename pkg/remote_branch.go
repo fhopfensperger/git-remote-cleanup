@@ -46,17 +46,11 @@ type GitInterface interface {
 //RemoteBranch to implement the interface
 type RemoteBranch struct {
 	gitClient GitInterface
-	repo      *git.Repository
 }
 
 //New constructor
 func New(client GitInterface) RemoteBranch {
-	return RemoteBranch{client, nil}
-}
-
-//AddRepo to add a remote repo to RemoteBranch struct
-func (m *RemoteBranch) AddRepo(repo *git.Repository) {
-	m.repo = repo
+	return RemoteBranch{client}
 }
 
 var versionRegex = regexp.MustCompile(`v\d+(\.\d+)+`)
@@ -143,16 +137,16 @@ func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []
 	log.Info().Msgf("Going to delete branches: %v from repo %s", branchesToDelete, repoURL)
 
 	// Clone repo temp
-	r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
-		URL: repoURL,
-	})
-	if err != nil {
-		log.Err(err).Msg("")
-		os.Exit(1)
-	}
-	if m.repo == nil {
-		m.AddRepo(r)
-	}
+	//r, err := git.Clone(memory.NewStorage(), nil, &git.CloneOptions{
+	//	URL: repoURL,
+	//})
+	//if err != nil {
+	//	log.Err(err).Msg("")
+	//	os.Exit(1)
+	//}
+	//if m.repo == nil {
+	//	m.AddRepo(r)
+	//}
 
 	var refspecs []config.RefSpec
 	// Add branches to Delete into refspecs
@@ -163,7 +157,7 @@ func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []
 	log.Info().Msg("Deleting...")
 	// push to delete branches which are matches the refspecs
 	if !dryRun {
-		err = m.gitClient.Push(&git.PushOptions{
+		err := m.gitClient.Push(&git.PushOptions{
 			Prune:    true,
 			RefSpecs: refspecs,
 		})

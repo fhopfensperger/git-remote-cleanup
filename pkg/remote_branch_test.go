@@ -18,7 +18,6 @@ import (
 )
 
 func Test_contains(t *testing.T) {
-	assert := assert.New(t)
 	type args struct {
 		s []string
 		e string
@@ -41,15 +40,14 @@ func Test_contains(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			actualString, actualBool := contains(tt.args.s, tt.args.e)
-			assert.Equal(tt.want, actualString)
-			assert.Equal(tt.want1, actualBool)
+			assert.Equal(t, tt.want, actualString)
+			assert.Equal(t, tt.want1, actualBool)
 
 		})
 	}
 }
 
 func TestFilterBranches(t *testing.T) {
-	assert := assert.New(t)
 	type args struct {
 		branches []string
 	}
@@ -89,7 +87,7 @@ func TestFilterBranches(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			assert.Equal(tt.want, FilterBranches(tt.args.branches))
+			assert.Equal(t, tt.want, FilterBranches(tt.args.branches))
 		})
 	}
 }
@@ -186,10 +184,7 @@ func TestRemoteBranch_CleanBranches(t *testing.T) {
 		URLs:  []string{"https://github.com/fhopfensperger/amqp-sb-client.git"},
 		Fetch: nil,
 	}
-	repo := git.Repository{}
-
 	mockRemoteBranch := New(remote)
-	mockRemoteBranch.AddRepo(&repo)
 
 	var refspecs []config.RefSpec
 	refspecs = append(refspecs, "refs/heads/release/v2.2.2:refs/heads/release/v2.2.2")
@@ -213,10 +208,7 @@ func TestRemoteBranch_CleanBranches_All_Excluded(t *testing.T) {
 		URLs:  []string{"https://github.com/fhopfensperger/amqp-sb-client.git"},
 		Fetch: nil,
 	}
-	repo := git.Repository{}
-
 	mockRemoteBranch := New(remote)
-	mockRemoteBranch.AddRepo(&repo)
 
 	var refspecs []config.RefSpec
 	refspecs = append(refspecs, "refs/heads/release/v2.2.2:refs/heads/release/v2.2.2")
@@ -241,10 +233,7 @@ func TestRemoteBranch_CleanBranches_Some_Excluded(t *testing.T) {
 		URLs:  []string{"https://github.com/fhopfensperger/amqp-sb-client.git"},
 		Fetch: nil,
 	}
-	repo := git.Repository{}
-
 	mockRemoteBranch := New(remote)
-	mockRemoteBranch.AddRepo(&repo)
 
 	var refspecs []config.RefSpec
 	refspecs = append(refspecs, "refs/heads/release/v2.2.2:refs/heads/release/v2.2.2")
@@ -269,10 +258,7 @@ func TestRemoteBranch_CleanBranches_branches_to_delete_empty(t *testing.T) {
 		URLs:  []string{"https://github.com/fhopfensperger/amqp-sb-client.git"},
 		Fetch: nil,
 	}
-	repo := git.Repository{}
-
 	mockRemoteBranch := New(remote)
-	mockRemoteBranch.AddRepo(&repo)
 
 	var refspecs []config.RefSpec
 	refspecs = append(refspecs, "refs/heads/release/v2.2.2:refs/heads/release/v2.2.2")
