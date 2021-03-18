@@ -1,2 +1,3 @@
-git@github.com:fhopfensperger/amqp-sb-client.git
-
+git@github.com:fhopfensperger/test-repo.git
+# git@github.com:fhopfensperger/git-releaser.git
+# git@github.com:fhopfensperger/amqp-sb-client.git # Lines with `#` wont be used
