@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"github.com/fhopfensperger/git-remote-cleanup/pkg"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -30,9 +31,13 @@ var branchCmd = &cobra.Command{
 	Short: "Get remote branches",
 	Long:  `Get remote branches`,
 	Run: func(cmd *cobra.Command, args []string) {
+		auth := http.BasicAuth{
+			Username: "123", // Using a PAT this can be anything except an empty string
+			Password: pat,
+		}
 		for _, r := range repos {
 			latest = viper.GetBool("latest")
-			gitService := pkg.RemoteBranch{}
+			gitService := pkg.New(nil, &auth)
 			gitService.GetRemoteBranches(r, filter, latest)
 		}
 	},
