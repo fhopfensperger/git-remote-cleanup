@@ -22,6 +22,8 @@ import (
 	"sort"
 	"strings"
 
+	"github.com/go-git/go-git/v5/plumbing/transport"
+
 	"golang.org/x/mod/semver"
 
 	"github.com/go-git/go-git/v5/plumbing"
@@ -46,11 +48,12 @@ type GitInterface interface {
 //RemoteBranch to implement the interface
 type RemoteBranch struct {
 	gitClient GitInterface
+	auth      transport.AuthMethod
 }
 
 //New constructor
-func New(client GitInterface) RemoteBranch {
-	return RemoteBranch{client}
+func New(client GitInterface, auth transport.AuthMethod) RemoteBranch {
+	return RemoteBranch{client, auth}
 }
 
 var versionRegex = regexp.MustCompile(`v\d+(\.\d+)+`)
@@ -69,7 +72,7 @@ func (m *RemoteBranch) GetRemoteBranches(repoURL string, branchFilter string, la
 	}
 
 	// We can then use every Remote functions to retrieve wanted information
-	refs, err := m.gitClient.List(&git.ListOptions{})
+	refs, err := m.gitClient.List(&git.ListOptions{Auth: m.auth})
 	if err != nil {
 		log.Err(err).Msg("")
 	}
@@ -160,6 +163,7 @@ func (m *RemoteBranch) CleanBranches(branchesToDelete []string, exclusionList []
 		err := m.gitClient.Push(&git.PushOptions{
 			Prune:    true,
 			RefSpecs: refspecs,
+			Auth:     m.auth,
 		})
 		if err != nil {
 			log.Err(err).Msg("")

@@ -18,6 +18,7 @@ package cmd
 
 import (
 	"github.com/fhopfensperger/git-remote-cleanup/pkg"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -31,10 +32,14 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete old branches, keeps every latest hotfix version",
 	Long:  `Delete old branches, keeps every latest hotfix version`,
 	Run: func(cmd *cobra.Command, args []string) {
+		auth := http.BasicAuth{
+			Username: "123", // Using a PAT this can be anything except an empty string
+			Password: pat,
+		}
 		excludes = viper.GetStringSlice("exclude")
 		dryRun = viper.GetBool("dry-run")
 		for _, r := range repos {
-			gitService := pkg.RemoteBranch{}
+			gitService := pkg.New(nil, &auth)
 			branches := gitService.GetRemoteBranches(r, filter, false)
 			branches = pkg.FilterBranches(branches)
 			gitService.CleanBranches(branches, excludes, dryRun)
