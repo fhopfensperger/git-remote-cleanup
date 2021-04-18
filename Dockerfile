@@ -4,15 +4,13 @@ USER root
 WORKDIR /work
 COPY . .
 ARG BUILD_VERSION="0.0.0"
-RUN CGO_ENABLED=0 go build -ldflags "-X main.version=$BUILD_VERSION" -o git-remote-cleanup .
-RUN find .
+RUN CGO_ENABLED=0 go build -a -ldflags "-X main.version=$BUILD_VERSION" -o git-remote-cleanup .
 
 FROM alpine:3.13.5
 
 LABEL maintainer="Florian Hopfensperger <f.hopfensperger@gmail.com>"
 
-RUN apk add --update ca-certificates \
-    && apk add --update -t wget git openssl \
+RUN apk add --update wget git openssl openssh ca-certificates \
     && rm /var/cache/apk/* \
     && adduser -G root -u 1000 -D -S kuser
 

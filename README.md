@@ -51,3 +51,14 @@ cd git-remote-cleanup_x.x.x_darwin_amd64
 chmod +x git-remote-cleanup
 sudo mv git-remote-cleanup /usr/local/bin/
 ```
+
+## Run as container
+
+Besides installing the binary on the local computer, you have the option to run the program as a container
+```bash
+# Using a single repo
+docker run -it --rm quay.io/fhopfensperger/git-remote-cleanup branches -r https://github.com/fhopfensperger/git-remote-cleanup.git -b master -p 123
+
+# Using a file to define multiple repos
+docker run -it --rm -v $(pwd)/repos_http.txt:/app/repos_http.txt quay.io/fhopfensperger/git-remote-cleanup branches -f repos_http.txt -b master -p 123
+```
