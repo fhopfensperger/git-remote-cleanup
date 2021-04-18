@@ -8,3 +8,10 @@ updates:
   open-pull-requests-limit: 10
   reviewers:
   - fhopfensperger
+- package-ecosystem: docker
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  reviewers:
+    - fhopfensperger
