@@ -3,6 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/fhopfensperger/git-remote-cleanup)](https://goreportcard.com/report/github.com/fhopfensperger/git-remote-cleanup)
 [![Coverage Status](https://coveralls.io/repos/github/fhopfensperger/git-remote-cleanup/badge.svg?branch=master)](https://coveralls.io/github/fhopfensperger/git-remote-cleanup?branch=master)
 [![Release](https://img.shields.io/github/release/fhopfensperger/git-remote-cleanup.svg?style=flat-square)](https://github.com//fhopfensperger/git-remote-cleanup/releases/latest)
+[![Docker Repository on Quay](https://img.shields.io/badge/Quay-repository-sucess "Docker Repository on Quay")](https://quay.io/repository/fhopfensperger/git-remote-cleanup)
 
 
 Get and delete no longer needed release branches from a remote repository.
