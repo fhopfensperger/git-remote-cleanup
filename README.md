@@ -36,13 +36,19 @@ export PAT=1234567890abcdef
 
 # Installation
 
-## Option 1 (script)
+## Homebrew
+
+```bash
+brew install fhopfensperger/tap/git-remote-cleanup
+```
+
+## Script
 
 ```bash
 curl https://raw.githubusercontent.com/fhopfensperger/git-remote-cleanup/master/get.sh | bash
 ```
 
-## Option 2 (manually)
+## Manually
 
 Go to [Releases](https://github.com/fhopfensperger/git-remote-cleanup/releases) download the latest release according to your processor architecture and operating system, then unarchive and copy it to the right location
 

@@ -1,6 +1,6 @@
 builds:
   - env:
-    - CGO_ENABLED=0
+      - CGO_ENABLED=0
     # GOOS list to build for.
     # For more info refer to: https://golang.org/doc/install/source#environment
     # Defaults are darwin and linux.
@@ -16,3 +16,21 @@ builds:
       - amd64
       - arm
       - arm64
+
+brews:
+  - tap:
+      owner: fhopfensperger
+      name: homebrew-tap
+    folder: Formula
+    homepage: https://fhopfensperger.github.io
+    description: Get and delete no longer needed release branches from a remote repository.
+    license: Apache 2.0
+    test: |
+      system "#{bin}/git-remote-cleanup -v"
+    dependencies:
+      - name: go
+        type: optional
+      - name: git
+        type: optional
+    install: |-
+      bin.install "git-remote-cleanup"
