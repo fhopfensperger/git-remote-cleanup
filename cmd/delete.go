@@ -32,6 +32,7 @@ var deleteCmd = &cobra.Command{
 	Short: "Delete old branches, keeps every latest hotfix version",
 	Long:  `Delete old branches, keeps every latest hotfix version`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkRepos()
 		auth := http.BasicAuth{
 			Username: "123", // Using a PAT this can be anything except an empty string
 			Password: pat,

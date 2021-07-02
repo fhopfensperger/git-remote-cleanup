@@ -53,46 +53,29 @@ func Execute(version string) {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	//rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.git-remote-cleanup.yaml)")
 	pf := rootCmd.PersistentFlags()
 	pf.StringSliceP("repos", "r", []string{}, "Git Repo urls e.g. git@github.com:fhopfensperger/my-repo.git")
 	_ = viper.BindPFlag("repos", pf.Lookup("repos"))
-	//cobra.MarkFlagRequired(pf, "repos")
+
 	pf.StringP("filter", "b", "", "Which branches should be filtered e.g. release")
 	_ = viper.BindPFlag("filter", pf.Lookup("filter"))
 	_ = cobra.MarkFlagRequired(pf, "branch-filter")
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+
 	pf.StringP("file", "f", "", "Uses repos from file (one repo per line)")
 	_ = viper.BindPFlag("file", pf.Lookup("file"))
 	pf.StringP("pat", "p", "", `Use a Git Personal Access Token instead of the default private certificate! You could also set a environment variable. "export PAT=123456789" `)
 	_ = viper.BindPFlag("pat", pf.Lookup("pat"))
 
-	//rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 	rootCmd.SetVersionTemplate(`{{printf "v%s\n" .Version}}`)
 }
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
-
 	viper.AutomaticEnv() // read in environment variables that match
-
 	repos = viper.GetStringSlice("repos")
 	filter = viper.GetString("filter")
 	fileName = viper.GetString("file")
 	pat = viper.GetString("pat")
-
-	if fileName != "" {
-		repos = getReposFromFile(fileName)
-	}
-	if len(repos) == 0 && fileName == "" {
-		fmt.Println("Either -f (file) or -r (repos) must be set")
-		os.Exit(1)
-	}
 }
 
 func getReposFromFile(fileName string) []string {
@@ -114,4 +97,14 @@ func getReposFromFile(fileName string) []string {
 		}
 	}
 	return lines
+}
+
+func checkRepos() {
+	if fileName != "" {
+		repos = getReposFromFile(fileName)
+	}
+	if len(repos) == 0 && fileName == "" {
+		fmt.Println("Either -f (file) or -r (repos) must be set")
+		os.Exit(1)
+	}
 }

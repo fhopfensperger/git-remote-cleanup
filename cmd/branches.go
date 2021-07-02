@@ -31,6 +31,7 @@ var branchCmd = &cobra.Command{
 	Short: "Get remote branches",
 	Long:  `Get remote branches`,
 	Run: func(cmd *cobra.Command, args []string) {
+		checkRepos()
 		auth := http.BasicAuth{
 			Username: "123", // Using a PAT this can be anything except an empty string
 			Password: pat,
