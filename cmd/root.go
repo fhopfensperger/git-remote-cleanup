@@ -22,10 +22,9 @@ import (
 	"os"
 
 	"github.com/rs/zerolog/log"
+	"github.com/spf13/viper"
 
 	"github.com/spf13/cobra"
-
-	"github.com/spf13/viper"
 )
 
 var repos []string
