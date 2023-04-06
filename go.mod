@@ -3,10 +3,10 @@ module github.com/fhopfensperger/git-remote-cleanup
 go 1.16
 
 require (
-	github.com/go-git/go-git/v5 v5.4.2
-	github.com/rs/zerolog v1.23.0
-	github.com/spf13/cobra v1.2.1
-	github.com/spf13/viper v1.8.1
-	github.com/stretchr/testify v1.7.0
-	golang.org/x/mod v0.4.2
+	github.com/go-git/go-git/v5 v5.6.1
+	github.com/rs/zerolog v1.29.0
+	github.com/spf13/cobra v1.7.0
+	github.com/spf13/viper v1.15.0
+	github.com/stretchr/testify v1.8.2
+	golang.org/x/mod v0.10.0
 )
