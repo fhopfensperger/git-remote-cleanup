@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/go-git/go-git/v5 v5.6.1
-	github.com/rs/zerolog v1.29.0
+	github.com/rs/zerolog v1.29.1
 	github.com/spf13/cobra v1.7.0
 	github.com/spf13/viper v1.15.0
 	github.com/stretchr/testify v1.8.2
