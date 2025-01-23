@@ -1,6 +1,6 @@
 module github.com/fhopfensperger/git-remote-cleanup
 
-go 1.21
+go 1.22.0
 
 toolchain go1.23.5
 
@@ -10,7 +10,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/spf13/viper v1.19.0
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/mod v0.19.0
+	golang.org/x/mod v0.22.0
 )
 
 require (
