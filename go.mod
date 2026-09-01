@@ -2,7 +2,7 @@ module github.com/fhopfensperger/git-remote-cleanup
 
 go 1.22.0
 
-toolchain go1.24.0
+toolchain go1.27.1
 
 require (
 	github.com/go-git/go-git/v5 v5.13.2
